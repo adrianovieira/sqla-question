@@ -138,7 +138,7 @@ docker compose run --rm surveys
 
 == The issue
 
-1. `sa.select(Model)`: retrieve data using the model defined at link:surveys_model.py[`surveys_model.py`]. +
+1. `sa.select(Model)`: retrieve data using the model defined at link:surveys.py[`surveys.py`]. +
 As you can see, here the `status` value repeats _N_ times within the same date and time is equal.
 2. `sa.text('select ...')`: retrieve data using ad-hoc _selection text_ +
 On the other hand, here the `status` value is correct.
