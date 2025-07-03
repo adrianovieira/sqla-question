@@ -1,0 +1,30 @@
+---
+services:
+  pg-server:
+    image: postgres:16-alpine3.22
+    security_opt:
+      - label:disable
+    environment:
+      - POSTGRES_USER=surveys
+      - POSTGRES_PASSWORD=notsecure
+    volumes:
+      - ./initdb.d:/docker-entrypoint-initdb.d
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: pg_isready -U $$POSTGRES_USER
+      interval: 5s
+      timeout: 10s
+      retries: 5
+  surveys:
+    image: python:3.13-alpine
+    environment:
+      DB_HOST: pg-server
+    depends_on:
+      pg-server:
+        condition: service_healthy
+    network_mode: service:pg-server
+    volumes:
+      - ./:/work
+    working_dir: "/work"
+    command: ./initapp.d/run-surveys.sh

@@ -1,0 +1,147 @@
+= Survey
+:toc:
+:toclevels: 1
+
+
+> What happening?
+
+== Intro
+
+I am trying to retrieve data from a **`MATERIALIZED VIEW`** on a PostgreSQL Database.
+
+But I am getting into trouble.
+So, I have written a simple Python+SQLAlchemy code to demonstrate this.
+
+=== Technologies
+
+pypi packages::
+
+- pip installs the latest version of SQLAlchemy (2.0.41) and Psycopg(3.2.9)
++
+```bash
+pip install sqlalchemy psycopg["binary"]
+```
+
+=== Database initialization
+
+`initdb.d/``::
+
+[source, sql]
+----
+-- Initialize database
+0_db_init.sql
+
+-- load sample data (15000 lines)
+data_survey_0005.sql
+
+-- Create materialezed view and its index
+zz_create_views.sql
+----
+
+
+.`0_db_init.sql` statments
+[source, sql]
+----
+include::initdb.d/0_db_init.sql[]
+----
+
+.`zz_create_views.sql` statments
+[source, sql]
+----
+include::initdb.d/zz_create_views.sql[]
+----
+
+
+== Run demo app
+
+App main script is `surveys.py` (for this demo db host is fixed to run the app using `docker compose`).
+
+.initialize the database
+[source, bash]
+----
+docker compose up -d pg-server
+----
+
+After the database is running and data loaded it is able to retrive some data.
+
+.Get some loaded data from the database
+[source, bash]
+----
+PGPASSWORD=notsecure psql -h localhost -U surveys \
+-c "select * from analysis.mview_surveys_loaded_at_status order by loaded_at limit 30;"
+----
+
+.Sample of retrieved data
+[cols="^2,^1,>2", align="center"]
+|===
+|      loaded_at*      | status  ^| count 
+
+| 2025-07-03 00:00:37 | viewed  |     1
+| 2025-07-03 00:00:37 | open    |     3
+| 2025-07-03 00:00:37 | invalid |     1
+| 2025-07-03 00:00:37 | valid   |     3
+| 2025-07-03 00:00:37 | pending |  6212
+| 2025-07-03 00:00:38 | pending | 12300
+
+3+<| `. . .`
+
+| 2025-07-03 00:00:42 | pending | 11421
+| 2025-07-03 00:00:43 | invalid |     6
+
+|===
+
+*_This date vary according to the loaded time_.
+
+Them run the simple application.
+
+[source, bash]
+----
+docker compose run surveys
+----
+
+.Retrieved data
+[cols="^1a,2a,2a", align="center"]
+|===
+| Seq. | sa.select(Model)^1^ | sa.text('select ...')^2^
+
+|  0  |  2025-07-03 00:00:37 => viewed   |       2025-07-03 00:00:37 => viewed
+|  1  |  2025-07-03 00:00:37 => viewed   |       2025-07-03 00:00:37 => open
+|  2  |  2025-07-03 00:00:37 => viewed   |       2025-07-03 00:00:37 => pending
+|  3  |  2025-07-03 00:00:37 => viewed   |       2025-07-03 00:00:37 => invalid
+|  4  |  2025-07-03 00:00:37 => viewed   |       2025-07-03 00:00:37 => valid
+|  5  |  2025-07-03 00:00:38 => pending  |       2025-07-03 00:00:38 => pending
+|  6  |  2025-07-03 00:00:38 => pending  |       2025-07-03 00:00:38 => open
+|  7  |  2025-07-03 00:00:38 => pending  |       2025-07-03 00:00:38 => valid
+|  8  |  2025-07-03 00:00:38 => pending  |       2025-07-03 00:00:38 => viewed
+|  9  |  2025-07-03 00:00:38 => pending  |       2025-07-03 00:00:38 => invalid
+|  10  | 2025-07-03 00:00:39 => open     |       2025-07-03 00:00:39 => open
+|  11  | 2025-07-03 00:00:39 => open     |       2025-07-03 00:00:39 => viewed
+|  12  | 2025-07-03 00:00:39 => open     |       2025-07-03 00:00:39 => pending
+|  13  | 2025-07-03 00:00:39 => open     |       2025-07-03 00:00:39 => invalid
+|  14  | 2025-07-03 00:00:39 => open     |       2025-07-03 00:00:39 => valid
+|  15  | 2025-07-03 00:00:40 => valid    |       2025-07-03 00:00:40 => valid
+|  16  | 2025-07-03 00:00:40 => valid    |       2025-07-03 00:00:40 => viewed
+|  17  | 2025-07-03 00:00:40 => valid    |       2025-07-03 00:00:40 => open
+|  18  | 2025-07-03 00:00:40 => valid    |       2025-07-03 00:00:40 => pending
+|  19  | 2025-07-03 00:00:40 => valid    |       2025-07-03 00:00:40 => invalid
+|  20  | 2025-07-03 00:00:41 => viewed   |       2025-07-03 00:00:41 => viewed
+|  21  | 2025-07-03 00:00:41 => viewed   |       2025-07-03 00:00:41 => open
+|  22  | 2025-07-03 00:00:41 => viewed   |       2025-07-03 00:00:41 => pending
+|  23  | 2025-07-03 00:00:41 => viewed   |       2025-07-03 00:00:41 => invalid
+|  24  | 2025-07-03 00:00:41 => viewed   |       2025-07-03 00:00:41 => valid
+|  25  | 2025-07-03 00:00:42 => valid    |       2025-07-03 00:00:42 => valid
+|  26  | 2025-07-03 00:00:42 => valid    |       2025-07-03 00:00:42 => invalid
+|  27  | 2025-07-03 00:00:42 => valid    |       2025-07-03 00:00:42 => pending
+|  28  | 2025-07-03 00:00:42 => valid    |       2025-07-03 00:00:42 => open
+|  29  | 2025-07-03 00:00:43 => valid    |       2025-07-03 00:00:43 => valid
+|===
+
+== The issue
+
+1. `sa.select(Model)`: retrieve data using the model defined at `surveys_model.py`. +
+As you can see, here the `status` value repeats _N_ times within the same date and time is equal.
+2. `sa.text('select ...')`: retrieve data using ad-hoc _selection text_ +
+On the other hand, here the `status` value is correct.
+
+
+What I need to do to fix this issue?
