@@ -19,6 +19,7 @@ services:
   surveys:
     image: python:3.13-alpine
     environment:
+      PYTHONDONTWRITEBYTECODE: 1
       DB_HOST: pg-server
     depends_on:
       pg-server:
