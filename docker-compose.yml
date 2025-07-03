@@ -5,8 +5,8 @@ services:
     security_opt:
       - label:disable
     environment:
-      - POSTGRES_USER=surveys
-      - POSTGRES_PASSWORD=notsecure
+      POSTGRES_USER: surveys
+      POSTGRES_PASSWORD: notsecure
     volumes:
       - ./initdb.d:/docker-entrypoint-initdb.d
     ports:
@@ -19,6 +19,7 @@ services:
   surveys:
     image: python:3.13-alpine
     environment:
+      PGPASSWORD: notsecure
       PYTHONDONTWRITEBYTECODE: 1
       DB_HOST: pg-server
     depends_on:
